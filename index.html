@@ -689,33 +689,11 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-
-        function createSakura() {
-            const emojis = ['★', '☆', '✮'];
-            const s = document.createElement('div');
-            s.className = 'star';
-            s.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
-            s.style.left = Math.random() * 100 + 'vw';
-            s.style.fontSize = (Math.random() * 20 + 20) + 'px';
-            s.style.animationDuration = (Math.random() * 4 + 4) + 's';
-            s.style.opacity = Math.random() * 0.3;
-            document.body.appendChild(s);
-            
-            const finalScale = Math.random() * 0.5;
-            
-            setTimeout(() => {
-                s.style.opacity = '0';
-                s.style.transform = `scale(${finalScale})`;
-            }, 5000);
-            
-            setTimeout(() => s.remove(), 8000);
-        }
-        
-        setInterval(createSakura, 300);
     </script>
 </body>
 
 </html>
+
 
 
 
