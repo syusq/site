@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BU SITE NIYE VAR?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Exo+2:wght@900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --miku-teal: #39C5BB;
+            --pink: #ff66aa;
+            --p5-red: #d32f2f;
+            --p5-black: #0a0a0a;
+            --glitch-offset: 1.5px; 
+        }
+
+        /* DUAL-LAYER BACKGROUND SYSTEM FOR SMOOTH TRANSITIONS */
+        .bg-layer {
+            position: fixed;
+            top: -10%; left: -10%; 
+            width: 120%; height: 120%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.45) contrast(1.1);
+            z-index: -2;
+            pointer-events: none;
+            will-change: opacity;
+        }
+        
+        #bg-layer-1 {
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+        
+        #bg-layer-2 {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        /* --- CURSOR --- */
+        
+        /* 1. Default Pink Cursor for everything */
+        * { 
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="12" cy="12" r="7" fill="%23ff66aa" filter="url(%23glow)"/></svg>') 12 12, crosshair !important;
+        }
+        
+        /* 2. Red Cursor: Buttons, AND Clock */
+        .bg-btn:hover, 
+        .social-btn:hover, 
+        .social-btn:hover *,
+        .p5-clock-widget:hover,
+        .p5-clock-widget:hover * { 
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="12" cy="12" r="7" fill="%23d32f2f" filter="url(%23glow)"/></svg>') 12 12, pointer !important;
+        }
+        
+        /* 3. Teal Cursor: Avatar & Dialogue Box */
+        .avatar-circle:hover, .dialogue-box:hover {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="12" cy="12" r="7" fill="%2339C5BB" filter="url(%23glow)"/></svg>') 12 12, pointer !important;
+        }
+
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: var(--p5-black);
+            font-family: 'Exo 2', sans-serif;
+            overflow: hidden; color: white;
+            perspective: 1000px;
+        }
+
+        .aberration {
+            position: relative;
+            text-shadow: 
+                var(--glitch-offset) 0 0 rgba(255,0,0,0.7), 
+                calc(var(--glitch-offset) * -1) 0 0 rgba(0,255,255,0.7);
+        }
+
+        /* --- CLOCK (Top Right) --- */
+        .p5-clock-widget {
+            position: fixed;
+            top: -50px; right: -50px;
+            background: var(--p5-red);
+            color: white;
+            padding: 70px 110px 40px 60px; 
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 15% 85%);
+            text-align: right;
+            z-index: 100;
+            box-shadow: -5px 5px 0 black;
+            will-change: transform;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .p5-clock-widget:hover {
+            background: var(--miku-teal);
+            transform: translate(-5px, 5px);
+            box-shadow: -8px 8px 0 var(--p5-black), 0 0 25px var(--miku-teal);
+            filter: brightness(1.2);
+        }
+        
+        .time-text { font-family: 'Bebas Neue'; font-size: 3.5rem; line-height: 0.8; }
+        .date-text { font-family: 'Bebas Neue'; font-size: 1.2rem; color: black; letter-spacing: 2px; }
+
+        /* --- DIALOGUE UI (Bottom Left) --- */
+        .dialogue-container {
+            position: fixed;
+            bottom: -60px;
+            left: -60px;
+            width: 700px;
+            max-width: 85vw;
+            z-index: 10;
+            will-change: transform;
+            padding: 0 0 80px 80px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .dialogue-container:hover {
+            transform: translate(5px, -5px);
+            filter: brightness(1.2);
+        }
+
+        .dialogue-box {
+            background: white;
+            padding: 4px;
+            clip-path: polygon(0% 10%, 2% 0%, 98% 8%, 100% 25%, 98% 95%, 95% 100%, 0% 100%, 0% 85%);
+            filter: drop-shadow(4px 0px 0px rgba(255,0,0,0.5)) drop-shadow(-4px 0px 0px rgba(0,255,255,0.5));
+        }
+
+        .box-inner {
+            background: var(--p5-black);
+            padding: 30px 40px;
+            clip-path: polygon(0% 10%, 2% 0%, 98% 8%, 100% 25%, 98% 95%, 95% 100%, 0% 100%, 0% 85%);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        /* AVATAR CIRCLE - HOVER ONLY */
+        .avatar-circle {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 20px var(--pink);
+            position: relative;
+            flex-shrink: 0;
+            transform: rotate(-4deg);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+        
+        .avatar-circle:hover {
+            transform: rotate(-4deg) scale(1.1);
+            box-shadow: 0 0 35px var(--pink);
+            border-color: var(--miku-teal);
+            filter: brightness(1.2);
+        }
+        
+        .avatar-circle img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
+            transition: opacity 0.15s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .avatar-circle img.hidden {
+            opacity: 0;
+        }
+        
+        .avatar-circle img.active {
+            opacity: 1;
+        }
+        
+        .avatar-circle::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border: 2px solid var(--pink);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        .diva-label { color: var(--miku-teal); font-family: 'Bebas Neue'; font-size: 1.1rem; letter-spacing: 3px; transition: opacity 0.3s ease; }
+        .message-text { font-size: 1.5rem; line-height: 1.2; color: #eee; margin-top: 5px; }
+
+        /* --- (Above Dialogue) --- */
+        .social-links {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            margin-left: 15px;
+            align-items: flex-start;
+        }
+        
+        .social-btn {
+            background: white;
+            padding: 3px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            filter: drop-shadow(2px 0px 0px rgba(255,0,0,0.5)) drop-shadow(-2px 0px 0px rgba(0,255,255,0.5));
+        }
+        
+        /* Unique angled shapes */
+        .social-btn:nth-child(1) { 
+            clip-path: polygon(0% 12%, 3% 0%, 95% 5%, 100% 18%, 97% 88%, 93% 100%, 2% 100%, 0% 90%);
+            transform: translateY(0px) rotate(2deg);
+        }
+        .social-btn:nth-child(2) { 
+            clip-path: polygon(0% 15%, 2% 2%, 96% 7%, 100% 22%, 98% 85%, 94% 98%, 3% 100%, 0% 88%);
+            transform: translateY(4px) rotate(2deg);
+        }
+        
+        .social-btn-inner {
+            background: var(--p5-black);
+            color: white;
+            padding: 10px 24px;
+            font-family: 'Bebas Neue';
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Matching inner clip-paths */
+        .social-btn:nth-child(1) .social-btn-inner {
+            clip-path: polygon(0% 12%, 3% 0%, 95% 5%, 100% 18%, 97% 88%, 93% 100%, 2% 100%, 0% 90%);
+        }
+        .social-btn:nth-child(2) .social-btn-inner {
+            clip-path: polygon(0% 15%, 2% 2%, 96% 7%, 100% 22%, 98% 85%, 94% 98%, 3% 100%, 0% 88%);
+        }
+        
+        .social-btn:hover {
+            filter: drop-shadow(3px 0px 0px rgba(255,0,0,0.7)) 
+                    drop-shadow(-3px 0px 0px rgba(0,255,255,0.7))
+                    drop-shadow(0 0 20px var(--pink));
+        }
+        
+        .social-btn:nth-child(1):hover { transform: translateY(-3px) rotate(2deg) scale(1.05); }
+        .social-btn:nth-child(2):hover { transform: translateY(1px) rotate(2deg) scale(1.05); }
+        
+        .social-btn:hover .social-btn-inner {
+            background: var(--p5-red);
+            color: white;
+        }
+
+        /* --- Controls (with Parallax) --- */
+        .bg-controls {
+            position: fixed; bottom: 20px; right: 20px;
+            display: flex; 
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px; 
+            z-index: 200;
+            will-change: transform;
+        }
+        
+        .bg-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .bg-btn {
+            width: 30px; height: 30px; border: 2px solid white; background: rgba(0,0,0,0.5);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue'; font-size: 0.8rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* ACTIVE BUTTON STATE - Matching hover color (red) */
+        .bg-btn.active {
+            background: var(--p5-red);
+            box-shadow: 0 0 15px var(--p5-red);
+            border-color: var(--miku-teal);
+            transform: scale(1.1);
+        }
+        
+        .bg-btn:hover { 
+            background: var(--p5-red); 
+            transform: scale(1.25) rotate(8deg); 
+            box-shadow: 0 0 25px var(--pink);
+            border-color: var(--miku-teal);
+            z-index: 201;
+        }
+
+        /* --- COPYRIGHT (Above Background Buttons) --- */
+        .copyright-widget {
+            font-family: 'Bebas Neue';
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.4);
+            transition: color 0.3s ease;
+            text-align: right;
+        }
+        
+        .bg-controls:hover .copyright-widget {
+            color: rgba(57, 197, 187, 0.8);
+        }
+
+        .sakura {
+            position: fixed; top: -10%; z-index: 5;
+            pointer-events: none; animation: fall linear infinite;
+            transition: opacity 3s ease-out, transform 3s ease-out;
+            will-change: opacity, transform;
+        }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="bg-layer-1" class="bg-layer parallax-layer" data-speed="0.015"></div>
+    <div id="bg-layer-2" class="bg-layer parallax-layer" data-speed="0.015"></div>
+
+    <div class="p5-clock-widget aberration parallax-layer" data-speed="0.035" data-constrain="true">
+        <div class="date-text" id="date-display">JAN 13 // TUE</div>
+        <div class="time-text" id="clock">19:39</div>
+    </div>
+
+    <div class="dialogue-container parallax-layer" data-speed="0.05" data-constrain="true">
+        <div class="social-links">
+            <a href="https://youtube.com/playlist?list=PL86E8E3F409C4E7B8&si=q8Ec4tWCC7jssJz0" target="_blank" class="social-btn">
+                <div class="social-btn-inner">PEAK</div>
+            </a>
+            <a href="https://backloggd.com/u/syusq/" target="_blank" class="social-btn">
+                <div class="social-btn-inner">BACKLOGGD</div>
+            </a>
+        </div>
+        <div class="dialogue-box">
+            <div class="box-inner">
+                <div class="avatar-circle">
+                    <img id="avatar-image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8WKp_l094PMlLP92V0gpjbSwd5eS3SxKkmw&s" alt="Avatar">
+                    <img id="gif-image" src="" alt="">
+                </div>
+                <div class="text-content">
+                    <div class="diva-label aberration" id="speaker-label"></div>
+                    <div class="message-text" id="dialogue-text">
+                        "click me"
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-controls parallax-layer" data-speed="0.04" data-constrain="true">
+        <div class="copyright-widget" id="copyright-display">
+            <span id="copyright-text">IMAGE: *雪愛* - yukia_1128' </span>
+        </div>
+        <div class="bg-buttons">
+            <div class="bg-btn" data-index="0">01</div>
+            <div class="bg-btn" data-index="1">02</div>
+            <div class="bg-btn" data-index="2">03</div>
+            <div class="bg-btn" data-index="3">04</div>
+            <div class="bg-btn" data-index="4">05</div>
+        </div>
+    </div>
+
+    <script>
+        const backgrounds = [
+            'https://pbs.twimg.com/media/GzV7HwybQAAOnvL?format=jpg&name=4096x4096',
+            'https://media.discordapp.net/attachments/1165647696091172894/1461271312940011520/DivaMegaMix.exe_Screenshot_2026.01.15_-_11.05.13.82.png?ex=6969f276&is=6968a0f6&hm=10603031d3dc9743f0cab7cbee80705cdda8d48ece85c0be452c09dd19e86c89&=&format=webp&quality=lossless&width=1144&height=644',
+            'https://media.discordapp.net/attachments/1165647696091172894/1461265926111625258/Resident_Evil_4_Biohazard_4_Screenshot_2025.10.28_-_22.20.00.82.png?ex=6969ed71&is=69689bf1&hm=a41166607961b50c06585a6da6875f56ec494cdc27bbd324d871a15c477a9948&=&format=webp&quality=lossless&width=1144&height=644',
+            'https://pbs.twimg.com/media/G-kZr-KW8AEWP_t?format=jpg&name=medium',
+            'https://media.discordapp.net/attachments/1165647696091172894/1461265351437320294/FA98745B-7F4F-44E1-88E5-1E7900gdfgfdA2554D.png?ex=6969ece8&is=69689b68&hm=b42b675f369f8166f8dcdb96da988bd86b26ab78432c1ad203ff78862f207814&=&format=webp&quality=lossless'
+        ];
+
+        const copyrightInfo = [
+            'IMAGE: *雪愛* - yukia_1128',
+            'IMAGE: MINE',
+            'IMAGE: MINE',
+            'IMAGE: NO IDEA',
+            'IMAGE: MINE'
+        ];
+
+        // Dialogue system
+        const dialogues = [
+            {
+                speaker: "WHY DOES THIS SITE EVEN EXIST?",
+                text: "to click me even more"
+            },
+            {
+                speaker: "",
+                text: "thanks"
+            },
+            {
+                speaker: "",
+                text: "btw why do you click things that you don't have to click?"
+            },
+            {
+                speaker: "",
+                text: "seriously YOU didn't had to click just because i told you to do so"
+            },
+            {
+                speaker: "",
+                text: "yet here we are"
+            },
+            {
+                speaker: "",
+                text: "i mean this site still doesn't even have a proper purpose, so it would be better if you just leave"
+            },
+            {
+                speaker: "",
+                text: "i made this site because i could, not because i should"
+            },
+            {
+                speaker: "",
+                text: "btw why did you even came to here?"
+            },
+            {
+                speaker: ". . .",
+                text: "i mean there's nothing to see"
+            },
+            {
+                speaker: "",
+                text: "except a dialogue box which is made to be clicked"
+            },
+            {
+                speaker: "",
+                text: "hmm?"
+            },
+            {
+                speaker: "",
+                text: "i guess YOU just discovered clicking things is addictive"
+            },
+            {
+                speaker: "",
+                text: "why do you keep clicking, should i be worried?"
+            },
+            {
+                speaker: "",
+                text: "wow another click huh? keep it up champion!"
+            },
+            {
+                speaker: "...",
+                text: "imagine spending time on productive things, that couldn't be me for sure"
+            },
+            {
+                speaker: "JUST WONDERING",
+                text: "so are we the ones who is clicking or is the clicking itself is the one who is clicking?"
+            },
+            {
+                speaker: "",
+                text: "please do something else already"
+            },
+            {
+                speaker: "...",
+                text: "thanks for being here even tho it doesn't make any sense"
+            },
+            {
+                speaker: "",
+                text: "what if we're all just npcs in someone's weird website? it would be pretty funny right?"
+            },
+            {
+                speaker: "...",
+                text: "still clicking huh? no judgment, hmm okay maybe some judgment"
+            },
+            {
+                speaker: "",
+                text: "you're doing amazing (at absolutely nothing and clicking things)"
+            },
+            {
+                speaker: "WOULD YOU STOP CLICKING?",
+                text: "there is nothing to see, i just made this for fun :sob:"
+            },
+            {
+                speaker: "",
+                text: "mhm? when did YOUR clicking addiction started?"
+            },
+            {
+                speaker: "",
+                text: "oh look, another click"
+            },
+            {
+                speaker: "",
+                text: "we both know you're clicking because you're expecting something important to happen"
+            },
+            {
+                speaker: "",
+                text: "its not gonna happen, but if you came this far"
+            },
+            {
+                speaker: "I MUST SAY",
+                text: "your presence here makes this void slightly less empty"
+            }
+            
+        ];
+
+        // GIF URLs
+        const reactionGifs = [
+            'https://media.tenor.com/-5lQRgz1YngAAAAi/pet-chibi-kasane-teto-utau-utauloid-vocaloid-pjsk.gif',
+            'https://media.tenor.com/hdat7LtCgc4AAAAi/miku-hatsune-miku.gif',
+            'https://media1.tenor.com/m/HqjMegVOSRsAAAAd/clannad-fuko.gif',
+            'https://media.tenor.com/Gl5t1msPYCQAAAAM/steins-gate.gif',
+            'https://media.tenor.com/aYRpNwr66uUAAAAi/kurisu-petpet.gif',
+            'https://media.tenor.com/HplM2qicBooAAAAi/chie-chie-satonaka.gif',
+            'https://media.tenor.com/iRZTp5DGXfUAAAAi/persona-3-makoto-yuki.gif',
+            'https://media1.tenor.com/m/AdAAa66reXcAAAAC/doctors-when-the-surgery.gif',
+            'https://media1.tenor.com/m/5uTV7-YkCfMAAAAC/uma-musume-brain.gif',
+            'https://media1.tenor.com/m/7x7K6hqJY6UAAAAd/umamusume-satono-diamond.gif',
+            'https://media1.tenor.com/m/3SJrBPHrsJYAAAAd/shinji.gif',
+            'https://media1.tenor.com/m/ck2dxqKEeckAAAAC/azumanga-daioh-osaka.gif',
+            'https://media.tenor.com/uG9H9qWU-TwAAAAj/bocchi-bocchi-the-rock.gif',
+            'https://media1.tenor.com/m/73pahpIwaMYAAAAC/kita-ikuyo-boc.gif',
+            'https://media1.tenor.com/m/r4djGFU9qLIAAAAd/ne-bilim.gif',
+            'https://media.tenor.com/HMNqww7TGRUAAAAi/cirno-touhou.gif',
+            'https://media.tenor.com/SEk0JfR7b5oAAAAM/fumo-touhou-fumo.gif',
+            'https://media.tenor.com/dnJj4Uu98tUAAAAM/snake-metal-gear-solid.gif',
+            'https://media1.tenor.com/m/eNB1fns-_dsAAAAd/jetstream-sam-metal-gear-rising.gif',
+            'https://media.tenor.com/3PibvAjQOg0AAAAM/k-on.gif',
+            'https://media1.tenor.com/m/Bg3ShfbkKJwAAAAd/rigby-cat-rigby.gif',
+            'https://media1.tenor.com/m/IuadZ_DUSxYAAAAd/miyabi-hoshimi-miyabi.gif',
+            'https://media1.tenor.com/m/yGwDNV_M08UAAAAC/miyabi-zenlesszonezero.gif'
+            
+        ];
+
+        let currentDialogueIndex = 0;
+        let currentGifIndex = 0;
+        let isTyping = false;
+        let isChangingGif = false;
+
+        function typeWriter(element, text, speed = 30) {
+            return new Promise((resolve) => {
+                element.textContent = '';
+                let i = 0;
+                
+                function type() {
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    } else {
+                        resolve();
+                    }
+                }
+                
+                type();
+            });
+        }
+
+        async function advanceDialogue() {
+            if (isTyping) return;
+            
+            isTyping = true;
+            currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.length;
+            const dialogue = dialogues[currentDialogueIndex];
+            
+            const speakerLabel = document.getElementById('speaker-label');
+            const dialogueText = document.getElementById('dialogue-text');
+            
+            // Fade out
+            speakerLabel.style.opacity = '0';
+            dialogueText.style.opacity = '0';
+            
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            speakerLabel.textContent = dialogue.speaker;
+            speakerLabel.style.opacity = '1';
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            dialogueText.style.opacity = '1';
+            await typeWriter(dialogueText, dialogue.text);
+            
+            isTyping = false;
+        }
+
+        function showRandomGif() {
+            if (isChangingGif) return; // Prevent rapid clicks
+            
+            isChangingGif = true;
+            const avatarImage = document.getElementById('avatar-image');
+            const gifImage = document.getElementById('gif-image');
+            
+            // Get next GIF in order
+            gifImage.src = reactionGifs[currentGifIndex];
+            currentGifIndex = (currentGifIndex + 1) % reactionGifs.length;
+            
+            // Hide avatar, show GIF
+            avatarImage.classList.add('hidden');
+            gifImage.classList.add('active');
+            
+            // Allow next click after short delay
+            setTimeout(() => {
+                isChangingGif = false;
+            }, 200);
+        }
+
+        let currentBGIndex = 0;
+        let bgInterval;
+        let isChanging = false;
+        let activeLayer = 1; // Track which layer is currently visible
+
+        const layer1 = document.getElementById('bg-layer-1');
+        const layer2 = document.getElementById('bg-layer-2');
+
+        function setActiveButton(index) {
+            document.querySelectorAll('.bg-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        function changeBG(index) {
+            if (isChanging) return; // Block rapid clicks completely
+            
+            isChanging = true;
+            currentBGIndex = index;
+            
+            // Determine which layers to use
+            const frontLayer = activeLayer === 1 ? layer1 : layer2;
+            const backLayer = activeLayer === 1 ? layer2 : layer1;
+            
+            // Set new image on back layer
+            backLayer.style.backgroundImage = `url('${backgrounds[index]}')`;
+            
+            // Crossfade: hide front, show back
+            frontLayer.style.opacity = '0';
+            backLayer.style.opacity = '1';
+            
+            // Swap active layer
+            activeLayer = activeLayer === 1 ? 2 : 1;
+            
+            // Update button state
+            setActiveButton(index);
+            
+            // Update copyright display
+            document.getElementById('copyright-text').innerText = copyrightInfo[index];
+            
+            // Allow next change after transition completes
+            setTimeout(() => {
+                isChanging = false;
+            }, 1000);
+        }
+
+        function startAutoCycle() {
+            clearInterval(bgInterval); // Clear any existing interval
+            bgInterval = setInterval(() => {
+                currentBGIndex = (currentBGIndex + 1) % backgrounds.length;
+                changeBG(currentBGIndex);
+            }, 15000);
+        }
+
+        // Initial setup
+        layer1.style.backgroundImage = `url('${backgrounds[0]}')`;
+        setActiveButton(0);
+        startAutoCycle();
+
+        // Dialogue box click handler
+        document.querySelector('.dialogue-box').addEventListener('click', advanceDialogue);
+
+        // Avatar click handler for GIF
+        document.querySelector('.avatar-circle').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dialogue advance when clicking avatar
+            showRandomGif();
+        });
+
+        // Button click handlers
+        document.querySelectorAll('.bg-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                changeBG(index);
+                startAutoCycle(); // Reset timer on manual change
+            });
+        });
+
+        // Avatar click handler for GIF
+        document.querySelector('.avatar-circle').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dialogue advance when clicking avatar
+            showRandomGif();
+        });
+
+        // Parallax effect
+        document.addEventListener('mousemove', (e) => {
+            const layers = document.querySelectorAll('.parallax-layer');
+            const x = (window.innerWidth / 2 - e.pageX);
+            const y = (window.innerHeight / 2 - e.pageY);
+
+            layers.forEach(layer => {
+                const speed = parseFloat(layer.getAttribute('data-speed'));
+                const constrain = layer.hasAttribute('data-constrain');
+                
+                let transX = x * speed;
+                let transY = y * speed;
+                
+                if (constrain) {
+                    const maxOffset = 15;
+                    transX = Math.max(-maxOffset, Math.min(maxOffset, transX));
+                    transY = Math.max(-maxOffset, Math.min(maxOffset, transY));
+                }
+                
+                layer.style.transform = `translate(${transX}px, ${transY}px)`;
+            });
+        });
+
+        // Clock update
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            document.getElementById('date-display').innerText = months[now.getMonth()] + " " + now.getDate() + " // " + days[now.getDay()];
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        //  Particles
+        function createSakura() {
+            const emojis = ['★', '☆', '✮'];
+            const s = document.createElement('div');
+            s.className = 'sakura';
+            s.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+            s.style.left = Math.random() * 100 + 'vw';
+            s.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            s.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            s.style.opacity = Math.random() * 0.3;
+            document.body.appendChild(s);
+            
+            const finalScale = Math.random() * 0.5;
+            
+            setTimeout(() => {
+                s.style.opacity = '0';
+                s.style.transform = `scale(${finalScale})`;
+            }, 5000);
+            
+            setTimeout(() => s.remove(), 8000);
+        }
+        
+        setInterval(createSakura, 300);
+    </script>
+</body>
+</html>
