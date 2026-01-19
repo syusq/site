@@ -46,7 +46,8 @@
             box-shadow: 0 0 8px rgba(255, 102, 170, 0.8);
             transition: 
                 transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                background 0.3s, 
+                background 0.25s ease, 
+                box-shadow 0.25s ease,
                 width 0.2s, 
                 height 0.2s;
             will-change: transform, width, height;
@@ -54,8 +55,8 @@
 
         #custom-cursor.clicking {
             transform: translate3d(-50%, -50%, 0) scale(0.7);
-            background: white;
-            box-shadow: 0 0 15px white;
+            background: white !important;
+            box-shadow: 0 0 15px white !important;
         }
 
         .trail-particle {
@@ -330,24 +331,25 @@
                 audioCtx.resume().catch(() => {});
                 return;
             }
-            if (type === 'hover') {
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.03);
-                gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.03);
-            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.03);
+            gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.03);
         }
 
         document.addEventListener('mousemove', (e) => {
             customCursor.style.left = `${e.clientX}px`;
             customCursor.style.top = `${e.clientY}px`;
+
+            const hoveredEl = document.elementFromPoint(e.clientX, e.clientY);
+            updateCursorColor(hoveredEl);
 
             if (Math.random() > 0.7) {
                 const particle = document.createElement('div');
@@ -365,9 +367,31 @@
             }
         });
 
+        function updateCursorColor(el) {
+            if (!el) return;
+
+            if (el.closest('.avatar-circle')) {
+                customCursor.style.background = 'var(--miku-teal)';
+                customCursor.style.boxShadow = '0 0 15px var(--miku-teal)';
+            } 
+            else if (el.closest('.bg-btn') || el.closest('.p5-clock-widget') || el.closest('.social-btn')) {
+                customCursor.style.background = 'var(--p5-red)';
+                customCursor.style.boxShadow = '0 0 15px var(--p5-red)';
+            } 
+            else if (el.closest('.dialogue-box') || el.closest('.model-container')) {
+                customCursor.style.background = 'white';
+                customCursor.style.boxShadow = '0 0 15px white';
+            } 
+            else {
+                customCursor.style.background = 'var(--pink)';
+                customCursor.style.boxShadow = '0 0 8px rgba(255, 102, 170, 0.8)';
+            }
+        }
+
         document.addEventListener('mousedown', () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             customCursor.classList.add('clicking');
+            playSound('hover');
         });
 
         document.addEventListener('mouseup', () => {
@@ -375,7 +399,7 @@
         });
 
         function setupHoverSFX() {
-            const sfxElements = document.querySelectorAll('.sfx-hover, a, button, .bg-btn, .social-btn, .avatar-circle');
+            const sfxElements = document.querySelectorAll('.sfx-hover, a, button, .bg-btn, .social-btn, .avatar-circle, .dialogue-box');
             sfxElements.forEach(el => {
                 el.addEventListener('mouseenter', () => playSound('hover'));
             });
@@ -554,7 +578,7 @@
                 startAutoCycle();
             });
         });
-
+        
         let mX = 0, mY = 0;
         document.addEventListener('mousemove', (e) => {
             mX = e.pageX;
@@ -617,4 +641,3 @@
     </script>
 </body>
 </html>
-
