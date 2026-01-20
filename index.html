@@ -356,6 +356,21 @@
             oscillator.stop(audioCtx.currentTime + 0.03);
         }
 
+        function playTypeSound() {
+            if (audioCtx.state === 'suspended') return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1600, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.02);
+            gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.02);
+        }
+
         document.addEventListener('mousemove', (e) => {
             customCursor.style.left = `${e.clientX}px`;
             customCursor.style.top = `${e.clientY}px`;
@@ -489,6 +504,7 @@
         let currentDialogueIndex = 0;
         let currentGifIndex = 0;
         let isTyping = false;
+        let skipTyping = false;
         let isChangingGif = false;
 
         function typeWriter(element, text, speed = 30) {
@@ -496,8 +512,14 @@
                 element.textContent = '';
                 let i = 0;
                 function type() {
+                    if (skipTyping) {
+                        element.textContent = text;
+                        resolve();
+                        return;
+                    }
                     if (i < text.length) {
                         element.textContent += text.charAt(i);
+                        if (text.charAt(i) !== ' ') playTypeSound();
                         i++;
                         setTimeout(type, speed);
                     } else { resolve(); }
@@ -507,21 +529,30 @@
         }
 
         async function advanceDialogue() {
-            if (isTyping) return;
+            if (isTyping) {
+                skipTyping = true;
+                return;
+            }
+            
+            skipTyping = false;
             isTyping = true;
             currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.length;
             const dialogue = dialogues[currentDialogueIndex];
             const speakerLabel = document.getElementById('speaker-label');
             const dialogueText = document.getElementById('dialogue-text');
+            
             speakerLabel.style.opacity = '0';
             dialogueText.style.opacity = '0';
+            
             await new Promise(resolve => setTimeout(resolve, 300));
             speakerLabel.textContent = dialogue.speaker;
             speakerLabel.style.opacity = '1';
             await new Promise(resolve => setTimeout(resolve, 100));
             dialogueText.style.opacity = '1';
+            
             await typeWriter(dialogueText, dialogue.text);
             isTyping = false;
+            skipTyping = false;
         }
 
         function showRandomGif() {
@@ -653,6 +684,3 @@
     </script>
 </body>
 </html>
-
-
-
