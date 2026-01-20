@@ -171,7 +171,7 @@
 
         .diva-label { color: var(--miku-teal); font-family: 'Bebas Neue'; font-size: 1.1rem; letter-spacing: 3px; transition: opacity 0.3s ease; }
         .message-text { font-size: 1.5rem; line-height: 1.2; color: #eee; margin-top: 5px; }
-        .social-links { display: flex; gap: 12px; margin-bottom: 15px; margin-left: 15px; align-items: flex-start; }
+        .social-links { display: flex; gap: 6px; margin-bottom: 10px; margin-left: 15px; align-items: flex-start; }
 
         .social-btn {
             background: white; padding: 3px;
@@ -504,7 +504,7 @@
         let currentDialogueIndex = 0;
         let currentGifIndex = 0;
         let isTyping = false;
-        let skipTyping = false;
+        let skipTyping = false; // Flag to skip typing
         let isChangingGif = false;
 
         function typeWriter(element, text, speed = 30) {
@@ -512,6 +512,7 @@
                 element.textContent = '';
                 let i = 0;
                 function type() {
+                    // Check if skip was triggered
                     if (skipTyping) {
                         element.textContent = text;
                         resolve();
@@ -529,11 +530,13 @@
         }
 
         async function advanceDialogue() {
+            // If already typing, trigger the skip and stop here
             if (isTyping) {
                 skipTyping = true;
                 return;
             }
             
+            // Start normal dialogue advance
             skipTyping = false;
             isTyping = true;
             currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.length;
