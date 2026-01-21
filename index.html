@@ -504,7 +504,7 @@
         let currentDialogueIndex = 0;
         let currentGifIndex = 0;
         let isTyping = false;
-        let skipTyping = false; // Flag to skip typing
+        let skipTyping = false;
         let isChangingGif = false;
 
         function typeWriter(element, text, speed = 30) {
@@ -512,7 +512,6 @@
                 element.textContent = '';
                 let i = 0;
                 function type() {
-                    // Check if skip was triggered
                     if (skipTyping) {
                         element.textContent = text;
                         resolve();
@@ -530,13 +529,11 @@
         }
 
         async function advanceDialogue() {
-            // If already typing, trigger the skip and stop here
             if (isTyping) {
                 skipTyping = true;
                 return;
             }
             
-            // Start normal dialogue advance
             skipTyping = false;
             isTyping = true;
             currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.length;
@@ -687,3 +684,4 @@
     </script>
 </body>
 </html>
+
